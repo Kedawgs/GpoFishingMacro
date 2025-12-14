@@ -1,0 +1,9 @@
+# GPO Fishing Macro Dependencies
+# Install with: pip install -r requirements.txt
+
+mss>=9.0.0              # Fast screen capture
+opencv-python>=4.8.0    # Image processing (cv2)
+numpy>=1.24.0           # Array operations for image data
+pynput>=1.7.6           # Mouse control and monitoring
+keyboard>=0.13.5        # Simple hotkey detection
+colorama>=0.4.6         # Colored terminal output
