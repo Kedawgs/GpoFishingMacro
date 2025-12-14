@@ -403,9 +403,23 @@ class FishingDetector:
         # This prevents overshoot by starting counter-action before reaching target
         brake_distance = abs(self.sweet_spot_velocity) * 2.5  # Higher multiplier = earlier braking
 
-        # FIRST: Check if we need to brake due to high velocity (regardless of distance)
-        # This prevents overshoot by counter-acting momentum early
-        if not is_warmup and abs(self.sweet_spot_velocity) > BRAKE_VELOCITY:
+        # EXTREME EDGES: No braking, just max effort in the right direction
+        # At top edge - always hold to stay up (no release braking)
+        if sweet_spot_y < 60:
+            if DEBUG_MODE:
+                print(f"[Detector] EXTREME TOP (y={sweet_spot_y}) -> MAX HOLD (no braking)")
+            self.is_holding = True
+            return True
+        # At bottom edge - always release to stay down (no hold braking)
+        if sweet_spot_y > 260:
+            if DEBUG_MODE:
+                print(f"[Detector] EXTREME BOTTOM (y={sweet_spot_y}) -> MAX RELEASE (no braking)")
+            self.is_holding = False
+            return False
+
+        # Velocity braking - BUT only when fish is GREEN (tracking correctly)
+        # When fish is WHITE (not tracking), we need to catch up, not slow down!
+        if not is_warmup and abs(self.sweet_spot_velocity) > BRAKE_VELOCITY and self.fish_is_green:
             # Moving up fast (negative velocity) - release to brake
             if self.sweet_spot_velocity < -BRAKE_VELOCITY:
                 if DEBUG_MODE:
