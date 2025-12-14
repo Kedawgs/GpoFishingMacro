@@ -485,22 +485,36 @@ class FishingDetector:
                 return False
 
             # After braking (or if already slow), pulse to maintain position
+            # Use shorter pulses when in bottom area to allow dropping
+            if sweet_spot_y > 220:
+                # Bottom area - use shorter hold (3 frames) to let it drop easier
+                pulse_hold = 3
+                pulse_release = 2
+            elif sweet_spot_y < 80:
+                # Top area - use longer hold (6 frames) to counteract gravity more
+                pulse_hold = 6
+                pulse_release = 1
+            else:
+                # Middle area - standard pulse
+                pulse_hold = self.PULSE_HOLD_FRAMES
+                pulse_release = self.PULSE_RELEASE_FRAMES
+
             self.pulse_counter += 1
-            total_cycle = self.PULSE_HOLD_FRAMES + self.PULSE_RELEASE_FRAMES
+            total_cycle = pulse_hold + pulse_release
 
             # Reset counter if it gets too high
             if self.pulse_counter >= total_cycle:
                 self.pulse_counter = 0
 
             # Hold for first part of cycle, release for second part
-            if self.pulse_counter < self.PULSE_HOLD_FRAMES:
+            if self.pulse_counter < pulse_hold:
                 if DEBUG_MODE:
-                    print(f"[Detector] PULSE HOLD ({self.pulse_counter}/{self.PULSE_HOLD_FRAMES})")
+                    print(f"[Detector] PULSE HOLD ({self.pulse_counter}/{pulse_hold}) [zone: {'bottom' if sweet_spot_y > 220 else 'top' if sweet_spot_y < 80 else 'mid'}]")
                 self.is_holding = True
                 return True
             else:
                 if DEBUG_MODE:
-                    print(f"[Detector] PULSE RELEASE ({self.pulse_counter - self.PULSE_HOLD_FRAMES}/{self.PULSE_RELEASE_FRAMES})")
+                    print(f"[Detector] PULSE RELEASE ({self.pulse_counter - pulse_hold}/{pulse_release}) [zone: {'bottom' if sweet_spot_y > 220 else 'top' if sweet_spot_y < 80 else 'mid'}]")
                 self.is_holding = False
                 return False
 
